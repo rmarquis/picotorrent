@@ -1,6 +1,5 @@
 #addin "nuget:?package=Cake.CMake&version=1.4.0"
 #tool  "dotnet:?package=GitVersion.Tool&version=6.8.2"
-#tool  "nuget:?package=WiX&version=3.14.1"
 
 //////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -24,6 +23,14 @@ var Installer          = string.Format("PicoTorrent-{0}-{1}.msi", Version.SemVer
 var InstallerBundle    = string.Format("PicoTorrent-{0}-{1}.exe", Version.SemVer, platform);
 var PortablePackage    = string.Format("PicoTorrent-{0}-{1}.zip", Version.SemVer, platform);
 var SymbolsPackage     = string.Format("PicoTorrent-{0}-{1}.symbols.zip", Version.SemVer, platform);
+
+void WixBuild(string arguments)
+{
+    StartProcess("dotnet", new ProcessSettings
+    {
+        Arguments = "wix build " + arguments
+    });
+}
 
 //////////////////////////////////////////////////////////////////////
 // TASKS
@@ -102,56 +109,28 @@ Task("Build-Installer")
     .IsDependentOn("Setup-Publish-Directory")
     .Does(() =>
 {
-    var arch = Architecture.X64;
-
-    var sourceFiles = new FilePath[]
-    {
-        "./packaging/WiX/PicoTorrent.wxs",
-        "./packaging/WiX/PicoTorrent.Components.wxs",
-        "./packaging/WiX/PicoTorrent.Directories.wxs"
-    };
-
-    var objFiles = new FilePath[]
-    {
-        BuildDirectory + File("PicoTorrent.wixobj"),
-        BuildDirectory + File("PicoTorrent.Components.wixobj"),
-        BuildDirectory + File("PicoTorrent.Directories.wixobj")
-    };
-
-    WiXCandle(sourceFiles, new CandleSettings
-    {
-        Architecture = arch,
-        Defines = new Dictionary<string, string>
-        {
-            { "Configuration", configuration },
-            { "PublishDirectory", PublishDirectory },
-            { "Platform", platform },
-            { "ResourceDirectory", ResourceDirectory },
-            { "Version", Version.MajorMinorPatch }
-        },
-        Extensions = new [] { "WixFirewallExtension", "WixUtilExtension" },
-        OutputDirectory = BuildDirectory
-    });
-
-    WiXLight(objFiles, new LightSettings
-    {
-        ArgumentCustomization = args =>
-            args.Append("-sice:ICE38")
-                .Append("-sice:ICE91"),
-        Extensions = new [] { "WixFirewallExtension", "WixUtilExtension" },
-        OutputFile = PackagesDirectory + File(Installer)
-    });
+    WixBuild(string.Join(" ",
+        "-platform x64",
+        $"-d Platform={platform}",
+        $"-d Configuration={configuration}",
+        $"-d PublishDirectory={MakeAbsolute(PublishDirectory).FullPath}",
+        $"-d ResourceDirectory={MakeAbsolute(ResourceDirectory).FullPath}",
+        $"-d Version={Version.MajorMinorPatch}",
+        "-ext WixToolset.Util.wixext",
+        "-ext WixToolset.Firewall.wixext",
+        "\"packaging/WiX/PicoTorrent.wxs\"",
+        "\"packaging/WiX/PicoTorrent.Components.wxs\"",
+        "\"packaging/WiX/PicoTorrent.Directories.wxs\"",
+        $"-o \"{MakeAbsolute(PackagesDirectory + File(Installer)).FullPath}\""));
 });
 
 Task("Build-Installer-Bootstrapper")
     .Does(() =>
 {
-    var settings = new MSBuildSettings()
-        .SetConfiguration(configuration)
-        .SetMaxCpuCount(0)
-        .UseToolVersion(MSBuildToolVersion.Default);
-
-    MSBuild("./src/installer/PicoTorrentBootstrapper.sln", settings);
+    StartProcess("dotnet", new ProcessSettings
+    {
+        Arguments = $"build \"./src/installer/PicoTorrentBootstrapper.csproj\" -c {configuration}"
+    });
 });
 
 Task("Build-Installer-Bundle")
@@ -159,26 +138,19 @@ Task("Build-Installer-Bundle")
     .IsDependentOn("Build-Installer-Bootstrapper")
     .Does(() =>
 {
-    var arch = Architecture.X64;
+    var baDir = MakeAbsolute(Directory("./src/installer/bin") + Directory(configuration)).FullPath;
 
-    WiXCandle("./packaging/WiX/PicoTorrentBundle.wxs", new CandleSettings
-    {
-        Architecture = arch,
-        Extensions = new [] { "WixBalExtension", "WixNetFxExtension", "WixUtilExtension" },
-        Defines = new Dictionary<string, string>
-        {
-            { "PicoTorrentInstaller", PackagesDirectory + File(Installer) },
-            { "Platform", platform },
-            { "Version", Version.MajorMinorPatch }
-        },
-        OutputDirectory = BuildDirectory
-    });
-
-    WiXLight((BuildDirectory + File("PicoTorrentBundle.wixobj")).ToString(), new LightSettings
-    {
-        Extensions = new [] { "WixBalExtension", "WixNetFxExtension", "WixUtilExtension" },
-        OutputFile = PackagesDirectory + File(InstallerBundle)
-    });
+    WixBuild(string.Join(" ",
+        "-platform x64",
+        $"-d Platform={platform}",
+        $"-d Version={Version.MajorMinorPatch}",
+        $"-d PicoTorrentInstaller={MakeAbsolute(PackagesDirectory + File(Installer)).FullPath}",
+        $"-d BootstrapperApplication={baDir}/PicoTorrentBootstrapper.exe",
+        $"-d BootstrapperApplicationDir={baDir}",
+        "-ext WixToolset.Util.wixext",
+        "-ext WixToolset.Netfx.wixext",
+        "\"packaging/WiX/PicoTorrentBundle.wxs\"",
+        $"-o \"{MakeAbsolute(PackagesDirectory + File(InstallerBundle)).FullPath}\""));
 });
 
 Task("Build-Portable-Package")

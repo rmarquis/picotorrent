@@ -13,6 +13,12 @@
       "commands": [
         "dotnet-gitversion"
       ]
+    },
+    "wix": {
+      "version": "5.0.2",
+      "commands": [
+        "wix"
+      ]
     }
   }
 }
