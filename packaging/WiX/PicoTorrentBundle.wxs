@@ -45,7 +45,10 @@
 
         <!-- The bootstrapper application is a standalone managed EXE (WPF UI). -->
         <BootstrapperApplication SourceFile="$(var.BootstrapperApplication)">
+            <Payload SourceFile="$(var.BootstrapperApplicationDir)\PicoTorrentBootstrapper.exe.config" />
             <Payload SourceFile="$(var.BootstrapperApplicationDir)\mbanative.dll" />
+            <Payload SourceFile="$(var.BootstrapperApplicationDir)\WixToolset.BootstrapperApplicationApi.dll" />
+            <Payload SourceFile="$(var.BootstrapperApplicationDir)\WixToolset.Dtf.WindowsInstaller.dll" />
         </BootstrapperApplication>
 
         <Chain>
