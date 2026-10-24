@@ -69,7 +69,7 @@
         </BootstrapperApplicationRef>
 
         <Chain>
-            <PackageGroupRef Id="NetFx45Redist" />
+            <PackageGroupRef Id="NetFx48Redist" />
 
             <ExePackage Id="$(var.VCRedistId)"
                         Name="$(var.VCRedistName)"
