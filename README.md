@@ -51,5 +51,5 @@ PicoTorrent uses [Weblate](https://translate.picotorrent.org/) to handle the tra
 
 ## License
 
-Copyright (c) Viktor Elofsson and contributors. PicoTorrent is provided
+Copyright (c) 2015-2026 Viktor Elofsson and contributors. PicoTorrent is provided
 as-is under the MIT license. For more information see [LICENSE](LICENSE).
