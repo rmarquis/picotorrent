@@ -1,5 +1,8 @@
 #addin "nuget:?package=Cake.CMake&version=1.4.0"
 #tool  "dotnet:?package=GitVersion.Tool&version=6.8.2"
+#tool  "nuget:?package=WixToolset.Util.wixext&version=5.0.2"
+#tool  "nuget:?package=WixToolset.Firewall.wixext&version=5.0.2"
+#tool  "nuget:?package=WixToolset.Netfx.wixext&version=5.0.2"
 
 //////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -24,12 +27,22 @@ var InstallerBundle    = string.Format("PicoTorrent-{0}-{1}.exe", Version.SemVer
 var PortablePackage    = string.Format("PicoTorrent-{0}-{1}.zip", Version.SemVer, platform);
 var SymbolsPackage     = string.Format("PicoTorrent-{0}-{1}.symbols.zip", Version.SemVer, platform);
 
+var WixExtDir          = Directory("./tools");
+var UtilWixExt         = MakeAbsolute(WixExtDir + File("WixToolset.Util.wixext.5.0.2/wixext5/WixToolset.Util.wixext.dll")).FullPath;
+var FirewallWixExt     = MakeAbsolute(WixExtDir + File("WixToolset.Firewall.wixext.5.0.2/wixext5/WixToolset.Firewall.wixext.dll")).FullPath;
+var NetfxWixExt        = MakeAbsolute(WixExtDir + File("WixToolset.Netfx.wixext.5.0.2/wixext5/WixToolset.Netfx.wixext.dll")).FullPath;
+
 void WixBuild(string arguments)
 {
-    StartProcess("dotnet", new ProcessSettings
+    var exitCode = StartProcess("dotnet", new ProcessSettings
     {
         Arguments = "wix build " + arguments
     });
+
+    if (exitCode != 0)
+    {
+        throw new Exception($"wix build failed with exit code {exitCode}");
+    }
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -116,8 +129,8 @@ Task("Build-Installer")
         $"-d PublishDirectory={MakeAbsolute(PublishDirectory).FullPath}",
         $"-d ResourceDirectory={MakeAbsolute(ResourceDirectory).FullPath}",
         $"-d Version={Version.MajorMinorPatch}",
-        "-ext WixToolset.Util.wixext",
-        "-ext WixToolset.Firewall.wixext",
+        $"-ext \"{UtilWixExt}\"",
+        $"-ext \"{FirewallWixExt}\"",
         "\"packaging/WiX/PicoTorrent.wxs\"",
         "\"packaging/WiX/PicoTorrent.Components.wxs\"",
         "\"packaging/WiX/PicoTorrent.Directories.wxs\"",
@@ -127,10 +140,15 @@ Task("Build-Installer")
 Task("Build-Installer-Bootstrapper")
     .Does(() =>
 {
-    StartProcess("dotnet", new ProcessSettings
+    var exitCode = StartProcess("dotnet", new ProcessSettings
     {
         Arguments = $"build \"./src/installer/PicoTorrentBootstrapper.csproj\" -c {configuration}"
     });
+
+    if (exitCode != 0)
+    {
+        throw new Exception($"dotnet build failed with exit code {exitCode}");
+    }
 });
 
 Task("Build-Installer-Bundle")
@@ -147,8 +165,8 @@ Task("Build-Installer-Bundle")
         $"-d PicoTorrentInstaller={MakeAbsolute(PackagesDirectory + File(Installer)).FullPath}",
         $"-d BootstrapperApplication={baDir}/PicoTorrentBootstrapper.exe",
         $"-d BootstrapperApplicationDir={baDir}",
-        "-ext WixToolset.Util.wixext",
-        "-ext WixToolset.Netfx.wixext",
+        $"-ext \"{UtilWixExt}\"",
+        $"-ext \"{NetfxWixExt}\"",
         "\"packaging/WiX/PicoTorrentBundle.wxs\"",
         $"-o \"{MakeAbsolute(PackagesDirectory + File(InstallerBundle)).FullPath}\""));
 });
