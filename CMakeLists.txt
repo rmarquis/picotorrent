@@ -24,9 +24,6 @@ set(wxUSE_EXCEPTIONS      OFF   CACHE BOOL   "" FORCE)
 # vendor libs
 add_subdirectory(vendor/wx)
 
-# pico components
-add_subdirectory(src/pql)
-
 # vcpkg packages
 find_package(Boost                      REQUIRED COMPONENTS log)
 find_package(fmt                 CONFIG REQUIRED)
@@ -34,6 +31,9 @@ find_package(LibtorrentRasterbar CONFIG REQUIRED)
 find_package(nlohmann_json       CONFIG REQUIRED)
 find_package(unofficial-sqlite3  CONFIG REQUIRED)
 find_package(utf8cpp            CONFIG REQUIRED)
+
+# pico components
+add_subdirectory(src/pql)
 
 # Generate buildinfo file
 configure_file("${CMAKE_SOURCE_DIR}/src/picotorrent/buildinfo.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/buildinfo.cpp" @ONLY)
