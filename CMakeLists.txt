@@ -180,6 +180,7 @@ target_include_directories(
     PRIVATE
 
     include
+    src/picotorrent
 )
 
 target_link_libraries(
