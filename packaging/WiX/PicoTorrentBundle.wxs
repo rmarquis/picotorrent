@@ -55,24 +55,23 @@
             <PackageGroupRef Id="NetFx481Redist" />
 
             <ExePackage Id="$(var.VCRedistId)"
-                        Name="$(var.VCRedistName)"
                         Cache="remove"
-                        Compressed="no"
                         DetectCondition="VCREDISTVERSION_SEARCH &gt;= v$(var.VCRedistVersion)"
-                        DownloadUrl="$(var.VCRedistUrl)"
-                        InstallCommand="/install /quiet /norestart"
+                        InstallArguments="/install /quiet /norestart"
                         InstallCondition="INSTALL_VCREDIST = 1"
-                        RepairCommand="/repair /quiet /norestart"
-                        UninstallCommand="/uninstall /quiet /norestart"
+                        RepairArguments="/repair /quiet /norestart"
+                        UninstallArguments="/uninstall /quiet /norestart"
                         PerMachine="yes"
                         Permanent="yes"
                         Vital="yes">
 
-                <RemotePayload Description="$(var.VCRedistDescription)"
-                               Hash="$(var.VCRedistHash)"
-                               ProductName="$(var.VCRedistDescription)"
-                               Size="$(var.VCRedistSize)"
-                               Version="$(var.VCRedistVersion)" />
+                <ExePackagePayload Name="$(var.VCRedistName)"
+                                   DownloadUrl="$(var.VCRedistUrl)"
+                                   Description="$(var.VCRedistDescription)"
+                                   Hash="$(var.VCRedistHash)"
+                                   ProductName="$(var.VCRedistDescription)"
+                                   Size="$(var.VCRedistSize)"
+                                   Version="$(var.VCRedistVersion)" />
             </ExePackage>
 
             <RollbackBoundary />
