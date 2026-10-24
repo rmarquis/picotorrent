@@ -1,4 +1,5 @@
 #addin "nuget:?package=Cake.CMake&version=1.4.0"
+#tool  "dotnet:?package=GitVersion.Tool&version=6.8.2"
 #tool  "nuget:?package=WiX&version=3.14.1"
 
 //////////////////////////////////////////////////////////////////////
