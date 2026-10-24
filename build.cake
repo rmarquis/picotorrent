@@ -1,6 +1,5 @@
-#addin "nuget:?package=Cake.CMake&version=1.3.1"
-#tool  "nuget:?package=GitVersion.CommandLine&version=5.12.0"
-#tool  "nuget:?package=WiX&version=3.11.2"
+#addin "nuget:?package=Cake.CMake&version=1.4.0"
+#tool  "nuget:?package=WiX&version=3.14.1"
 
 //////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -44,9 +43,9 @@ Task("Generate-Project")
     {
         SourcePath = ".",
         OutputPath = OutputDirectory,
-        Generator = "Visual Studio 17 2022",
-        Platform = platform == "x86" ? "Win32" : "x64",
-        Toolset = "v143",
+        Generator = "Visual Studio 18 2026",
+        Platform = "x64",
+        Toolset = "v145",
         Options = new []
         {
             $"-DGITVERSION_VAR_BRANCHNAME={Version.BranchName}",
@@ -68,17 +67,9 @@ Task("Build")
     var settings = new MSBuildSettings()
         .SetConfiguration(configuration)
         .SetMaxCpuCount(0)
-        .UseToolVersion(MSBuildToolVersion.VS2022);
-    if(platform == "x86")
-    {
-        settings.WithProperty("Platform", "Win32")
-                .SetPlatformTarget(PlatformTarget.x86);
-    }
-    else
-    {
-        settings.WithProperty("Platform", "x64")
-                .SetPlatformTarget(PlatformTarget.x64);
-    }
+        .UseToolVersion(MSBuildToolVersion.Default);
+    settings.WithProperty("Platform", "x64")
+            .SetPlatformTarget(PlatformTarget.x64);
 
     MSBuild(OutputDirectory + File("PicoTorrent.vcxproj"), settings);
 
@@ -111,11 +102,6 @@ Task("Build-Installer")
     .Does(() =>
 {
     var arch = Architecture.X64;
-
-    if(platform == "x86")
-    {
-        arch = Architecture.X86;
-    }
 
     var sourceFiles = new FilePath[]
     {
@@ -162,7 +148,7 @@ Task("Build-Installer-Bootstrapper")
     var settings = new MSBuildSettings()
         .SetConfiguration(configuration)
         .SetMaxCpuCount(0)
-        .UseToolVersion(MSBuildToolVersion.VS2022);
+        .UseToolVersion(MSBuildToolVersion.Default);
 
     MSBuild("./src/installer/PicoTorrentBootstrapper.sln", settings);
 });
@@ -173,11 +159,6 @@ Task("Build-Installer-Bundle")
     .Does(() =>
 {
     var arch = Architecture.X64;
-
-    if(platform == "x86")
-    {
-        arch = Architecture.X86;
-    }
 
     WiXCandle("./packaging/WiX/PicoTorrentBundle.wxs", new CandleSettings
     {
