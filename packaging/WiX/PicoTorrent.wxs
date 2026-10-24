@@ -43,14 +43,14 @@
             <Feature Id="F_Firewall"
                      AllowAbsent="yes"
                      Level="1">
-                <Condition Level="0">SKIP_FIREWALL_EXCEPTION = 1</Condition>
+                <Level Condition="SKIP_FIREWALL_EXCEPTION = 1" Value="0" />
                 <ComponentGroupRef Id="CG_FirewallException" />
             </Feature>
 
             <Feature Id="F_Handlers"
                      AllowAbsent="yes"
                      Level="1">
-                <Condition Level="0">SKIP_ASSOCIATE_FILES = 1</Condition>
+                <Level Condition="SKIP_ASSOCIATE_FILES = 1" Value="0" />
                 <ComponentGroupRef Id="CG_Associations" />
             </Feature>
         </Feature>
